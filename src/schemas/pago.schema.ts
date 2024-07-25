@@ -11,6 +11,8 @@ export class Pago {
     required: true,
     trim: true,
   })
+  cliente_id: string;
+    
   @Prop({
     unique: false,
     required: true,

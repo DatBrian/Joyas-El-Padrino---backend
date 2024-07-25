@@ -11,7 +11,7 @@ export class Clientes extends Document{
         required: true,
         trim: true,
     })
-    cliente_id: string;
+    admin_id: string;
 
     @Prop({
         type: [{
