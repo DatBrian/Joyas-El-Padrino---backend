@@ -11,21 +11,21 @@ export class SaldosService {
     private SaldoModel: Model<Saldo>,
   ) {}
 
-  async getAll() {
+  async getAll(): Promise<Saldo[]> {
     try {
       const saldos = this.SaldoModel.find();
       return await saldos;
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 
-  async getOne(id: string) {
+  async getOne(id: string): Promise<Saldo> {
     try {
       const saldo = this.SaldoModel.findById(id);
       return await saldo;
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 
@@ -34,7 +34,7 @@ export class SaldosService {
       const saldo = new this.SaldoModel(body);
       return await saldo.save();
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 
@@ -43,7 +43,7 @@ export class SaldosService {
       const saldo = this.SaldoModel.findByIdAndUpdate(id, body);
       return await saldo;
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 
@@ -52,7 +52,7 @@ export class SaldosService {
       const deleted = this.SaldoModel.findByIdAndDelete(id);
       return await deleted;
     } catch (error) {
-      console.log(error);
+      throw error;
     }
   }
 }

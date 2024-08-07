@@ -1,11 +1,15 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEmailOrNumber } from 'src/common/validations';
 
 export class LoginDto {
-  @IsEmail()
   @IsNotEmpty()
-  correo: string;
+  @IsEmailOrNumber({
+    message:
+      'El campo username debe ser un correo electrónico válido o un número de identificación',
+  })
+  username: string | number;
 
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   contraseña: string;
 }

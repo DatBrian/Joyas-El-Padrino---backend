@@ -17,13 +17,11 @@ export class UsuariosService {
 
   async getAll() {
     try {
-      const users = this.usuarioModel.find();
+      const users = this.usuarioModel.find().lean();
+
       return await users;
     } catch (error) {
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error;
     }
   }
 
@@ -32,44 +30,22 @@ export class UsuariosService {
       const user = this.usuarioModel.findById(id);
       return await user;
     } catch (error) {
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error;
     }
   }
 
-  async loginUser(correo: string, password: string) {
+  async findBy({
+    key,
+    value,
+  }: {
+    key: keyof Usuario;
+    value: any;
+  }): Promise<Usuario | null> {
     try {
-      const user: CreateUserDto & Document = await this.usuarioModel.findOne({
-        correo,
-      });
-      const passwordValid = await bcrypt.compare(password, user.contraseña);
-
-      if (!passwordValid)
-        throw new HttpException(
-          'Verifique sus datos de inicio de sesión',
-          HttpStatus.UNAUTHORIZED,
-        );
-
-      if (user && passwordValid) {
-        const payload = { sub: user._id, name: user.nombre, role: user.rol };
-        const { access_token, refresh_token } =
-          await this.generateToken(payload);
-
-        return {
-          access_token,
-          refresh_token,
-          message: 'Login Success',
-        };
-      }
+      const user = await this.usuarioModel.findOne({ [key]: value }).select("+contraseña").exec();
+      return user;
     } catch (error) {
-      console.log(error);
-
-      throw new HttpException(
-        'Verifique sus datos de inicio de sesión',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new Error(`Error finding user by ${key}: ${error.message}`);
     }
   }
 
@@ -81,20 +57,12 @@ export class UsuariosService {
         contraseña: hashedPassword,
       });
       const user = await newUser.save();
-      const { access_token, refresh_token } = await this.generateToken(user);
       return {
-        access_token,
-        refresh_token,
         status: HttpStatus.CREATED,
         message: 'Register Success',
       };
     } catch (error) {
-      console.log(error);
-
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error;
     }
   }
 
@@ -103,10 +71,7 @@ export class UsuariosService {
       const deleted = this.usuarioModel.findByIdAndDelete(id);
       return await deleted;
     } catch (error) {
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error;
     }
   }
 
@@ -130,21 +95,5 @@ export class UsuariosService {
     };
   }
 
-  async refreshToken(refreshToken: string) {
-    try {
-      const user = this.jwtSvc.verify(refreshToken, {
-        secret: this.configService.get<string>('JWT_PRIVATE_KEY_REFRESH'),
-      });
-      const payload = { sub: user._id, name: user.nombre, role: user.rol };
-      const { access_token, refresh_token } = await this.generateToken(payload);
-      return {
-        access_token,
-        refresh_token,
-        status: 200,
-        message: 'Refresh Token sucess',
-      };
-    } catch (error) {
-      throw new HttpException('Token no válido', HttpStatus.UNAUTHORIZED);
-    }
-  }
+
 }
